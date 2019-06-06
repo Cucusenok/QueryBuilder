@@ -1,7 +1,7 @@
 <?php
 
 interface QueryBuilder{
-    public function create($table, $args);
+    public function create($table);
     public function insert($table, $args);
     public function select($table, $args);
     public function where();
@@ -23,9 +23,39 @@ class MySQLQueryBuilder implements QueryBuilder{
         return $this;
     }
 
-    public function create($table, $args){
-        print("hello");
+    public function create($table){
+        $this->query .= "CREATE TABLE $table";
     }
+
+    //sql types
+
+
+    public function char($name, $size){
+        $this->query .= " $name CHAR($size) ,";
+        return $this;
+    }
+
+    public function varchar($name, $size){
+        $this->query .= " $name VARCHAR($size) ,";
+        return $this;
+    }
+
+
+    public function text($name){
+        $this->query .= " $name TEXT,";
+        return $this;
+    }
+
+
+    public function longtext($name){
+        $this->query .= " $name LONGTEXT,";
+        return $this;
+    }
+    
+    
+    //end sql types
+    
+
     public function insert($table, $args){
         print("hello");
     }
@@ -109,6 +139,12 @@ class MySQLQueryBuilder implements QueryBuilder{
     public function get_query(){
         return $this->query;
     }
+
+    //func for making query if query return nothing
+    public function makeQuery(){
+        $this->con->query($this->query);
+        return $this;
+    }
 }
 
 
@@ -129,11 +165,25 @@ $db =  new MySQLQueryBuilder(ConnectDB::create("localhost", "test", "root", ""))
 
 $sel = $db->select('users', 'all')
           ->where()
-          ->not()->like("name", "fi")
-          ->getAll();
+          ->not()->like("name", "fi"); //Example for geting fields with conditions
 
-var_dump($sel);
+$users_array = $sel->getAll(); //getting fata field in array
 
+var_dump($sel); 
+
+
+$sel->clear(); //clear query
+
+$sel->create("Cars")
+    ->int("id")
+    ->varchar("name", 255)
+    ->varchar("model", 255)
+    ->SetPrimaryKey("Cars", "id");
+
+
+print('---------------<br>');
+
+var_dump($sel->get_query());
 
 
 //var_dump($sel);
