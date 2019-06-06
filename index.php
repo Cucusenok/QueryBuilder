@@ -178,7 +178,7 @@ $sel = $db->select('users', 'all')
           ->where()
           ->not()->like("name", "fi"); //Example for geting fields with conditions
 
-$users_array = $sel->getAll(); //getting fata field in array
+$users_array = $sel->getAll(); //getting data field in array
 
 //var_dump($sel); 
 
