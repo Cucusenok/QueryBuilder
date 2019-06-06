@@ -4,7 +4,7 @@ interface QueryBuilder{
     public function create($table, $args);
     public function insert($table, $args);
     public function select($table, $args);
-    public function where($argc);
+    public function where();
 }
 
 
@@ -18,6 +18,11 @@ class MySQLQueryBuilder implements QueryBuilder{
         $this->con = $pdoConnect;
     }
 
+    public function clear(){
+        $this->query = "";
+        return $this;
+    }
+
     public function create($table, $args){
         print("hello");
     }
@@ -27,26 +32,71 @@ class MySQLQueryBuilder implements QueryBuilder{
 
     //function for setting necessary fields and tables
     public function select($tables, $args){
-        if($args = 'all'){
-            $this->query .= "SELECT * FROM " . implode($tables, ", ");  } 
+        if($args = 'all'){ // if need select all
+            $this->query .= "SELECT * FROM " . implode(array($tables), ", ");  } 
         else{
              $this->query .= "SELECT " .implode($args, ", "). " FROM " . implode($tables, ", ");  }
-        
         return $this;
-        //return $this->con->query("SELECT * FROM $table");
     }
 
     //function for setting conditions in query
     //return  MySQLQueryBuilder object
-    public function where($args){
-        $this->query .= " WHERE " . implode(" AND ", $args);
+    public function where(){
+        $this->query .= " WHERE ";
         return $this;
     }
 
-
-    private function convert_query(&$query){
-        str_replace(array("==", "is"), "=", $query);
+    //comparison operators
+    public function like($field, $arg){
+        $this->query .= " $field LIKE '%$arg%' ";
+        return $this;
     }
+
+    public function equal($field, $arg){
+        $this->query .= " $field = $arg ";
+        return $this;
+    }
+    //end comparison operators
+
+
+    //logical operators
+    public function and(){
+        $this->query .= " AND ";
+        return $this;
+    }
+
+    public function or(){
+        $this->query .= " OR ";
+        return $this;
+    }
+    
+    public function not(){
+        $this->query .= " NOT ";
+        return $this;
+    }
+
+    //end logical operators
+
+
+    public function truncateTable($table){
+        $this->query .= "TRUNCATE TABLE $table";
+        return $this;
+    }
+    
+
+     //work with alter table
+    public function SetPrimaryKey($table, $arg){
+        $this->query .= " ALTER TABLE $table
+                          ADD PRIMARY KEY ($arg) ";
+        return $this;
+    }
+
+    public function DropPrimaryKey($table){
+        $this->query .= "ALTER TABLE $table
+                         DROP PRIMARY KEY";
+    }
+     //end work with alter table
+
 
     //finction for getting all area in DB
     //return Array
@@ -73,13 +123,16 @@ class ConnectDB{
 
 
 
+
+
 $db =  new MySQLQueryBuilder(ConnectDB::create("localhost", "test", "root", ""));
 
 $sel = $db->select('users', 'all')
-          ->where(array("id=0", "id=1"))
-          ->get_query();
+          ->where()
+          ->not()->like("name", "fi")
+          ->getAll();
 
-print($sel);
+var_dump($sel);
 
 
 
