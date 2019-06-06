@@ -1,7 +1,7 @@
 <?php
 
 interface QueryBuilder{
-    public function create($table);
+    public function createTable($table);
     public function insert($table, $args);
     public function select($table, $args);
     public function where();
@@ -23,8 +23,14 @@ class MySQLQueryBuilder implements QueryBuilder{
         return $this;
     }
 
-    public function create($table){
-        $this->query .= "CREATE TABLE $table";
+    public function createTable($table){
+        $this->query .= "CREATE TABLE $table ( ";
+        return $this;
+    }
+
+    public function endCreateTable(){
+        $this->query = substr($this->query, 0, -1);
+        $this->query .= " );";
     }
 
     //sql types
@@ -43,6 +49,11 @@ class MySQLQueryBuilder implements QueryBuilder{
 
     public function text($name){
         $this->query .= " $name TEXT,";
+        return $this;
+    }
+
+    public function int($name){
+        $this->query .= " $name INT,";
         return $this;
     }
 
@@ -169,16 +180,18 @@ $sel = $db->select('users', 'all')
 
 $users_array = $sel->getAll(); //getting fata field in array
 
-var_dump($sel); 
+//var_dump($sel); 
 
 
 $sel->clear(); //clear query
 
-$sel->create("Cars")
+$sel->createTable("Cars")
     ->int("id")
     ->varchar("name", 255)
     ->varchar("model", 255)
-    ->SetPrimaryKey("Cars", "id");
+    ->endCreateTable()
+    ->SetPrimaryKey("Cars", "id")
+    ->makeQuery();
 
 
 print('---------------<br>');
